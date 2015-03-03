@@ -64,29 +64,36 @@ class StreamingFileHandler(RequestHandler):
                 out.write(chunk)
                 md5_checksum.update(chunk)
 
+        try:
+            file_size = os.path.getsize(file_path)
+        except OSError:
+            # File path likely doesn't exist ...not a good situation
+            file_size = 0
+
         db.update_file(file_id,
                        file_path,
-                       os.path.getsize(file_path),
+                       file_size,
                        md5_checksum.digest())
 
         self.response.write(json.dumps({'file_id': file_id}))
 
 
+app = WSGIApplication(
+
+    # Routes
+    [
+        Route('/file/<file_id:(.*)>',
+              handler=StreamingFileHandler,
+              methods=['PUT', 'GET'])
+    ],
+
+    # Other options
+    debug=True
+)
+
+
 def main():
     """Start the streaming file-upload server"""
-
-    app = WSGIApplication(
-
-        # Routes
-        [
-            Route('/file/<file_id:(.*)>',
-                  handler=StreamingFileHandler,
-                  methods=['PUT', 'GET'])
-        ],
-
-        # Other options
-        debug=True
-    )
 
     httpserver.serve(app, host='127.0.0.1', port='8080')
 
