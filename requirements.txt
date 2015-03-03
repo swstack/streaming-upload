@@ -3,3 +3,6 @@ WebOb
 Paste
 webapp2
 requests
+nose
+mock
+coverage

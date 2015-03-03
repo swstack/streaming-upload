@@ -18,6 +18,10 @@ def _make_uri(file_id):
         location = 'file'
     else:
         location = 'file/%s' % file_id
+
+    # FIXME:
+    # The trailing forward slash here seems to matter...not sure if
+    # it should or if i'm doing something wrong...
     return "http://{host}:{port}/{location}/".format(
         host=HOST,
         location=location,
@@ -29,7 +33,10 @@ def get(file_id=None):
     uri = _make_uri(file_id)
     print "Performing GET to %s" % uri
     response = requests.get(uri)
-    return response.json()
+    if response:
+        return response.json()
+    else:
+        return response
 
 
 def put(file_id=None):
