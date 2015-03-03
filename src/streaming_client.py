@@ -44,10 +44,10 @@ def put(file_id=None):
 
 
 def main():
-    # print get()
-    # print get('foobar')
+    print get()
+    # print get('newidizzle')
     # print put('newidizzle')
-    print put()
+    # print put()
 
 
 if __name__ == '__main__':

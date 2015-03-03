@@ -1,5 +1,7 @@
 import json
 import hashlib
+import operator
+import base64
 
 import os
 
@@ -12,19 +14,27 @@ db = Database('localhost')
 
 
 class StreamingFileHandler(RequestHandler):
+    """Request handler for route /file/<id>"""
+
     file_store = '/tmp'
 
-    @classmethod
-    def from_deps(cls, db, *args, **kwargs):
-        return cls(db, *args, **kwargs)
+    def get(self, file_id=None):
+        """Get meta data for file(s)"""
 
-    def get(self, file_id):
-        """Get meta data for file(s)
+        if file_id is None or file_id == '':
+            file_id = None
+        else:
+            file_id = file_id.strip('/')
 
-        If the file_id param
-        """
+        documents = []
+        for document in db.get_file_data(file_id=file_id):
+            # Base64 encode the checksum so it goes across the wire nicely
+            md5_checksum = document['checksum']
+            document.update({'checksum': base64.b64encode(md5_checksum)})
+            documents.append(document)
 
-        self.response.write('Hello, webapp2!')
+        documents.sort(key=operator.itemgetter('size'))  # Sort in place
+        self.response.write(json.dumps(documents))
 
     def put(self, file_id=None):
         """Read the contents of the body and write to disk

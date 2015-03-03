@@ -19,13 +19,24 @@ class Database(object):
         files_collection = self._client.files_collection
         return files_collection.files
 
+    def get_file_data(self, file_id=None):
+        """Return file data for one or more files based on file_id
+
+        This method will always return an iterable
+        """
+
+        if file_id:
+            return self._files.find({'_id': file_id})
+        else:
+            return self._files.find({})
+
     def update_file(self, file_id, path, size, checksum):
         """Record a file in the database with it's meta-data"""
 
         meta_data = {
-            'timestamp': time.time(),
+            'timestamp': int(time.time()),
             'path': path,
-            'size': size,
+            'size': int(size),
             'checksum': Binary(checksum, MD5_SUBTYPE),
         }
 
