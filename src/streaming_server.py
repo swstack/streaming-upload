@@ -1,31 +1,17 @@
+import json
+import hashlib
+
+import os
+
 from paste import httpserver
 from webapp2 import WSGIApplication, Route, RequestHandler
 from database import Database
-from functools import wraps
-import json
-import os
 
 
 db = Database('localhost')
 
 
-def _request_handler_factory(handler, database):
-    """Factory for making request handlers
-
-    The reasoning behind this factory is because globals are bad, and this way
-    we can inject the custom `db` dependency into he request handlers.
-    """
-
-    def closure(*args, **kwargs):
-        return handler.from_deps(database, *args, **kwargs)
-
-    closure.__doc__ = 'foo'
-    closure.__module__ = 'bar'
-    return closure
-
-
 class StreamingFileHandler(RequestHandler):
-
     file_store = '/tmp'
 
     @classmethod
@@ -40,35 +26,58 @@ class StreamingFileHandler(RequestHandler):
 
         self.response.write('Hello, webapp2!')
 
-    def put(self):
+    def put(self, file_id=None):
         """Read the contents of the body and write to disk
 
-        This method will return an ID so that the client can look up the file at
-        at later time
+        If no file_id is provided we will create a new file.  This method will
+        return an ID so that the client can look up the file at at later time.
         """
 
-        new_file_id = db.get_unique_file_id()
-        with open(os.path.join(self.file_store, new_file_id), 'wb'):
-            pass
+        if file_id is None or file_id == '':
+            file_id = str(db.get_unique_file_id())
+        else:
+            file_id = file_id.strip('/')
 
-        x = 5
+        # Open a file on disk located under `self.file_store`
+        file_path = os.path.join(self.file_store, file_id)
+        with open(file_path, 'wb') as out:
 
+            md5_checksum = hashlib.md5()
 
-_routes = [
+            # Start reading the file in 128 byte chunks
+            while True:
+                chunk = self.request.body_file.read(128)
+                if chunk == '':
+                    break
 
-    Route('/file/(\d+)',
-          handler=StreamingFileHandler,
-          methods=['GET']),
+                # Write the chunk out to disk and update our checksum
+                out.write(chunk)
+                md5_checksum.update(chunk)
 
-    Route('/file/',
-          handler=StreamingFileHandler,
-          methods=['PUT'])
-]
+        db.update_file(file_id,
+                       file_path,
+                       os.path.getsize(file_path),
+                       md5_checksum.digest())
 
-app = WSGIApplication(_routes, debug=True)
+        self.response.write(json.dumps({'file_id': file_id}))
 
 
 def main():
+    """Start the streaming file-upload server"""
+
+    app = WSGIApplication(
+
+        # Routes
+        [
+            Route('/file/<file_id:(.*)>',
+                  handler=StreamingFileHandler,
+                  methods=['PUT', 'GET'])
+        ],
+
+        # Other options
+        debug=True
+    )
+
     httpserver.serve(app, host='127.0.0.1', port='8080')
 
 

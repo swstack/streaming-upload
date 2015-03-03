@@ -1,6 +1,7 @@
+import time
+
 from pymongo import MongoClient
-import os
-import md5
+from bson.binary import MD5_SUBTYPE, Binary
 
 
 class Database(object):
@@ -10,8 +11,6 @@ class Database(object):
     for storing and fetching files.
     """
 
-    FILE_COLLECTION = 'files'
-
     def __init__(self, host, port=27017):
         self._client = MongoClient(host, port)
 
@@ -20,17 +19,23 @@ class Database(object):
         files_collection = self._client.files_collection
         return files_collection.files
 
-    def record_file(self, file_path):
+    def update_file(self, file_id, path, size, checksum):
         """Record a file in the database with it's meta-data"""
+
+        meta_data = {
+            'timestamp': time.time(),
+            'path': path,
+            'size': size,
+            'checksum': Binary(checksum, MD5_SUBTYPE),
+        }
+
+        if self._files.find_one(file_id) is None:
+            # Document doesn't exist yet
+            self._files.insert({'_id': file_id})
+
+        self._files.update({'_id': file_id}, {'$set': meta_data})
 
     def get_unique_file_id(self):
         """Create a blank document in the files database and return it's ID"""
 
-        files_collection = self._client.files
         return self._files.insert({})
-
-
-if __name__ == "__main__":
-    db = Database()
-    cli = db.connect('localhost')
-    print cli.foobar
