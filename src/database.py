@@ -34,10 +34,10 @@ class Database(object):
         """Record a file in the database with it's meta-data"""
 
         meta_data = {
-            'timestamp': int(time.time()),
-            'path': path,
-            'size': int(size),
-            'checksum': Binary(checksum, MD5_SUBTYPE),
+            'timestamp': int(time.time()),              # UNIX Timestamp
+            'path': path,                               # Path to file
+            'size': int(size),                          # File size in bytes
+            'checksum': Binary(checksum, MD5_SUBTYPE),  # MD5 Checksum
         }
 
         if self._files.find_one(file_id) is None:
