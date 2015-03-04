@@ -1,3 +1,5 @@
+# TODO: Stream requests
+
 import requests
 
 HOST = 'localhost'

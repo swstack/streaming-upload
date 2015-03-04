@@ -34,6 +34,8 @@ class StreamingFileHandler(RequestHandler):
             documents.append(document)
 
         documents.sort(key=operator.itemgetter('size'))  # Sort in place
+
+        # TODO: Could stream response
         self.response.write(json.dumps(documents))
 
     def put(self, file_id=None):
@@ -41,6 +43,14 @@ class StreamingFileHandler(RequestHandler):
 
         If no file_id is provided we will create a new file.  This method will
         return an ID so that the client can look up the file at at later time.
+
+        NOTE: The PUT method in a pure REST implementation would likely not allow
+        the creation of files, only updating existing ones.  We could introduce a
+        POST method to the root collection /file/ to create a file and return the
+        newly created file ID.
+        
+        This implementation of PUT also allows user to specify any arbitrary file_id
+        and it will create or update that file, which may not be a good idea or secure.
         """
 
         if file_id is None or file_id == '':

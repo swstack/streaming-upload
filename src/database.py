@@ -33,8 +33,10 @@ class Database(object):
     def update_file(self, file_id, path, size, checksum):
         """Record a file in the database with it's meta-data"""
 
+        # TODO: Could store checksum as hexlified plain text
+
         meta_data = {
-            'timestamp': int(time.time()),              # UNIX Timestamp
+            'timestamp': int(time.time()),              # UNIX Timestamp (secs since epoch)
             'path': path,                               # Path to file
             'size': int(size),                          # File size in bytes
             'checksum': Binary(checksum, MD5_SUBTYPE),  # MD5 Checksum
