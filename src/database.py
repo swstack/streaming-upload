@@ -1,7 +1,6 @@
 import time
 
-from pymongo import MongoClient
-from bson.binary import MD5_SUBTYPE, Binary
+from pymongo import MongoClient, ASCENDING
 
 
 class Database(object):
@@ -22,13 +21,16 @@ class Database(object):
     def get_file_data(self, file_id=None):
         """Return file data for one or more files based on file_id
 
-        This method will always return an iterable
+        This method will always return an iterable and will be sorted based
+        file size in ascending order
         """
 
         if file_id:
-            return self._files.find({'_id': file_id})
+            unsorted = self._files.find({'_id': file_id})
         else:
-            return self._files.find({})
+            unsorted = self._files.find({})
+
+        return unsorted.sort('size', ASCENDING)
 
     def update_file(self, file_id, path, size, checksum):
         """Record a file in the database with it's meta-data"""

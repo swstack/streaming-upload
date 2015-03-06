@@ -1,10 +1,8 @@
-import json
 import hashlib
-import operator
-import base64
+import json
+from bson.json_util import dumps as mongodumps
 
 import os
-
 from paste import httpserver
 from webapp2 import WSGIApplication, Route, RequestHandler
 from database import Database
@@ -29,12 +27,8 @@ class StreamingFileHandler(RequestHandler):
         else:
             file_id = file_id.strip('/')
 
-        documents = []
-        for document in db.get_file_data(file_id=file_id):
-            documents.append(document)
-
-        documents.sort(key=operator.itemgetter('size'))  # Sort in place
-        self.response.write(json.dumps(documents))
+        documents = db.get_file_data(file_id=file_id)
+        self.response.write(mongodumps(list(documents)))
 
     def put(self, file_id=None):
         """Read the contents of the body and write to disk
