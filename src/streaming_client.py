@@ -53,10 +53,10 @@ def put(file_id=None):
 
 
 def main():
-    print get()
     # print get('newidizzle')
     # print put('newidizzle')
-    # print put()
+    print put()
+    print get()
 
 
 if __name__ == '__main__':

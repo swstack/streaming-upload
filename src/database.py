@@ -39,7 +39,7 @@ class Database(object):
             'timestamp': int(time.time()),              # UNIX Timestamp (secs since epoch)
             'path': path,                               # Path to file
             'size': int(size),                          # File size in bytes
-            'checksum': Binary(checksum, MD5_SUBTYPE),  # MD5 Checksum
+            'checksum': checksum,  # MD5 Checksum
         }
 
         if self._files.find_one(file_id) is None:

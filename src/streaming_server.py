@@ -19,7 +19,10 @@ class StreamingFileHandler(RequestHandler):
     file_store = '/tmp'
 
     def get(self, file_id=None):
-        """Get meta data for file(s)"""
+        """Get meta data for file(s)
+
+        TODO: Consider streaming response
+        """
 
         if file_id is None or file_id == '':
             file_id = None
@@ -28,14 +31,9 @@ class StreamingFileHandler(RequestHandler):
 
         documents = []
         for document in db.get_file_data(file_id=file_id):
-            # Base64 encode the checksum so it goes across the wire nicely
-            md5_checksum = document['checksum']
-            document.update({'checksum': base64.b64encode(md5_checksum)})
             documents.append(document)
 
         documents.sort(key=operator.itemgetter('size'))  # Sort in place
-
-        # TODO: Could stream response
         self.response.write(json.dumps(documents))
 
     def put(self, file_id=None):
@@ -83,7 +81,7 @@ class StreamingFileHandler(RequestHandler):
         db.update_file(file_id,
                        file_path,
                        file_size,
-                       md5_checksum.digest())
+                       md5_checksum.hexdigest())
 
         self.response.write(json.dumps({'file_id': file_id}))
 
