@@ -1,4 +1,4 @@
-import time
+import datetime
 
 from pymongo import MongoClient, ASCENDING
 
@@ -38,10 +38,10 @@ class Database(object):
         # TODO: Could store checksum as hexlified plain text
 
         meta_data = {
-            'timestamp': int(time.time()),              # UNIX Timestamp (secs since epoch)
-            'path': path,                               # Path to file
-            'size': int(size),                          # File size in bytes
-            'checksum': checksum,  # MD5 Checksum
+            'timestamp': datetime.datetime.now(),
+            'path': path,
+            'size': int(size),
+            'checksum': checksum,
         }
 
         if self._files.find_one(file_id) is None:
